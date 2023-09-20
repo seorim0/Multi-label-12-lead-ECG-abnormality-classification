@@ -39,10 +39,10 @@ pip install -r requirements.txt
 
 
 ## Results  
-![Screenshot from 2023-09-20 21-11-12](https://github.com/seorim0/CNUNet/assets/55497506/114b8117-f01c-42c8-bad9-1e9814889245)  
+![Screenshot from 2023-09-20 21-11-12](https://github.com/seorim0/ResU_Dense/assets/55497506/cda05b47-2993-4033-97a7-c0be0d0ce9c6)  
 
     
-![f1score_per_class_230914](https://github.com/seorim0/CNUNet/assets/55497506/3485eae1-8e29-4548-bd3d-77a3a5072031)  
+![f1score_per_class_230914](https://github.com/seorim0/ResU_Dense/assets/55497506/ee3f2247-6293-4170-ad86-e18471094ccf)  
 
 
 ## Reference   
@@ -62,4 +62,4 @@ Petr Nejedly, Adam Ivora, Radovan Smisek, Ivo Viscor, Zuzana Koscova, Pavel Jura
 
 ## Contact  
 Please get in touch with us if you have any questions or suggestions.   
-E-mail: allmindfine@yonsei.ac.kr
+E-mail: allmindfine@yonsei.ac.kr (Seorim Hwang) / jbcha7@yonsei.ac.kr (Jaebine Cha)
