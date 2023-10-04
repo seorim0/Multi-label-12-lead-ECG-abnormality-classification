@@ -1,7 +1,7 @@
 """
 Docstring for Options:
 This class serves to provide a centralized argument parser. It defines the hyperparameters and settings
-used throughout the speech enhancement training process, including data processing, model architecture,
+used throughout the ECG classification training process, including data processing, model architecture,
 and training configurations.
 """
 
