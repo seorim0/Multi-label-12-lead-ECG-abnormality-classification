@@ -1,5 +1,5 @@
 """
-Train interface for speech enhancement!
+Train interface for ECG classification!
 You can just run this file.
 """
 import os
@@ -126,9 +126,9 @@ for epoch in range(epoch_start_idx, opt.nepoch + 1):
     print('AUPRC {:.6f}'.format(valid_auprc))
 
     # Write results to the training log
-    train_log_fp.write('EPOCH[{}] T {:.6f} |  V {:.6f}  takes {:.3f} seconds'
+    train_log_fp.write('EPOCH[{}] T {:.6f} |  V {:.6f}  takes {:.3f} seconds\n'
                        .format(epoch, train_loss, valid_loss, time.time() - st_time))
-    train_log_fp.write('AUPRC {:.6f}'.format(valid_auprc))
+    train_log_fp.write('AUPRC {:.6f}\n'.format(valid_auprc))
 
 
 print('Training has been finished.')
