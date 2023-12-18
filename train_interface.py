@@ -17,7 +17,7 @@ from dataloader import create_dataloader
 #                                                  Parser init                                                       #
 ######################################################################################################################
 # Parse command-line arguments and configurations for the training experiment
-opt = options.Options().init(argparse.ArgumentParser(description='speech enhancement')).parse_args()
+opt = options.Options().init(argparse.ArgumentParser(description='ECG classification')).parse_args()
 print(opt)
 
 ######################################################################################################################
