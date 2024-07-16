@@ -1,5 +1,5 @@
 import numpy as np
-from sklearn.metrics import cohen_kappa_score
+from sklearn.metrics import cohen_kappa_score, accuracy_score, f1_score
 
 
 def compute_auc(labels, outputs):
@@ -85,6 +85,62 @@ def compute_auc(labels, outputs):
     return macro_auroc, macro_auprc, auroc, auprc
 
 
+# Compute a modified confusion matrix for multi-class, multi-label tasks.
+def compute_modified_confusion_matrix(labels, outputs):
+    # Compute a binary multi-class, multi-label confusion matrix, where the rows
+    # are the labels and the columns are the outputs.
+    num_recordings, num_classes = np.shape(labels)
+    A = np.zeros((num_classes, num_classes))
+
+    # Iterate over all of the recordings.
+    for i in range(num_recordings):
+        # Calculate the number of positive labels and/or outputs.
+        normalization = float(max(np.sum(np.any((labels[i, :], outputs[i, :]), axis=0)), 1))
+        # Iterate over all of the classes.
+        for j in range(num_classes):
+            # Assign full and/or partial credit for each positive class.
+            if labels[i, j]:
+                for k in range(num_classes):
+                    if outputs[i, k]:
+                        A[j, k] += 1.0 / normalization
+
+    return A
+
+
+# Compute the evaluation metric for the Challenge.
+# Compute challenge metric score
+def compute_challenge_metric(weights, labels, outputs, classes, sinus_rhythm={'426783006'}):
+    num_recordings, num_classes = np.shape(labels)
+    if sinus_rhythm in classes:
+        sinus_rhythm_index = classes.index(sinus_rhythm)
+    else:
+        raise ValueError('The sinus rhythm class is not available.')
+
+    # Compute the observed score.
+    A = compute_modified_confusion_matrix(labels, outputs)
+    observed_score = np.nansum(weights * A)
+
+    # Compute the score for the model that always chooses the correct label(s).
+    correct_outputs = labels
+    A = compute_modified_confusion_matrix(labels, correct_outputs)
+    correct_score = np.nansum(weights * A)
+
+    # Compute the score for the model that always chooses the sinus rhythm class.
+    # inactive_outputs = np.zeros((num_recordings, num_classes), dtype=np.bool)
+    inactive_outputs = np.zeros((num_recordings, num_classes))
+
+    inactive_outputs[:, sinus_rhythm_index] = 1
+    A = compute_modified_confusion_matrix(labels, inactive_outputs)
+    inactive_score = np.nansum(weights * A)
+
+    if correct_score != inactive_score:
+        normalized_score = float(observed_score - inactive_score) / float(correct_score - inactive_score)
+    else:
+        normalized_score = 0.0
+
+    return normalized_score
+
+
 def compute_kappa(labels, outputs, num_classes=26):
     avg_kappa = np.zeros(num_classes)
     for class_num in range(num_classes):
@@ -108,6 +164,14 @@ def is_number(x):
         float(x)
         return True
     except (ValueError, TypeError):
+        return False
+
+
+# Check if a variable is a a finite number or represents a finite number.
+def is_finite_number(x):
+    if is_number(x):
+        return np.isfinite(float(x))
+    else:
         return False
 
 
@@ -174,3 +238,100 @@ def compute_f_measure(labels, outputs):
 
     return macro_f_measure, f_measure
 
+
+def compute_metrics(labels, outputs):
+    num_recordings, num_classes = np.shape(labels)
+
+    A = compute_confusion_matrices(labels, outputs)
+
+    f_measure = np.zeros(num_classes)
+    precision = np.zeros(num_classes)
+    recall = np.zeros(num_classes)
+    specificity = np.zeros(num_classes)  # Specificity
+
+    for k in range(num_classes):
+        tp, fp, fn, tn = A[k, 1, 1], A[k, 1, 0], A[k, 0, 1], A[k, 0, 0]
+
+        if 2 * tp + fp + fn:
+            f_measure[k] = float(2 * tp) / float(2 * tp + fp + fn)
+        else:
+            f_measure[k] = float('nan')
+
+        if tp + fp:
+            precision[k] = float(tp) / float(tp + fp)
+        else:
+            precision[k] = float('nan')
+
+        if tp + fn:
+            recall[k] = float(tp) / float(tp + fn)
+        else:
+            recall[k] = float('nan')
+
+        # Specificity 계산 추가
+        if tn + fp:
+            specificity[k] = float(tn) / float(tn + fp)
+        else:
+            specificity[k] = float('nan')
+
+    if np.any(np.isfinite(f_measure)):
+        macro_f_measure = np.nanmean(f_measure)
+    else:
+        macro_f_measure = float('nan')
+
+    if np.any(np.isfinite(precision)):
+        macro_precision = np.nanmean(precision)
+    else:
+        macro_precision = float('nan')
+
+    if np.any(np.isfinite(recall)):
+        macro_recall = np.nanmean(recall)
+    else:
+        macro_recall = float('nan')
+
+    # Macro Specificity
+    if np.any(np.isfinite(specificity)):
+        macro_specificity = np.nanmean(specificity)
+    else:
+        macro_specificity = float('nan')
+
+    return macro_f_measure, f_measure, macro_precision, precision, macro_recall, recall, macro_specificity, specificity
+
+
+# Compute recording-wise accuracy.
+def compute_accuracy(labels, outputs):
+    num_recordings, num_classes = np.shape(labels)
+
+    num_correct_recordings = 0
+    for i in range(num_recordings):
+        if np.all(labels[i, :] == outputs[i, :]):
+            num_correct_recordings += 1
+
+    return float(num_correct_recordings) / float(num_recordings)
+
+
+def compute_accuracy_by_class(labels, outputs):
+    num_recordings, num_classes = np.shape(labels)
+
+    num_correct_recordings = 0
+    accuracy_list = []
+    for i in range(num_classes):
+        l = labels[:, i]
+        o = outputs[:, i]
+        accuracy = accuracy_score(l, o)
+        accuracy_list.append(accuracy)
+
+    return accuracy_list
+
+
+def compute_f1score_by_class(labels, outputs):
+    num_recordings, num_classes = np.shape(labels)
+
+    num_correct_recordings = 0
+    f1score_list = []
+    for i in range(num_classes):
+        l = labels[:, i]
+        o = outputs[:, i]
+        f1score = f1_score(l, o, average='macro')
+        f1score_list.append(f1score)
+
+    return f1score_list
