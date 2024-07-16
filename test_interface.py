@@ -1,5 +1,5 @@
 """
-Test interface for speech enhancement!
+Test interface for ECG classification!
 You can just run this file.
 """
 import os
